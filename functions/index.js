@@ -14,37 +14,40 @@ admin.initializeApp();
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
-exports.helloWorld = functions.https.onRequest((request, response) => {
-  response.send("Hello World!!");
-});
 
-exports.getPost = functions.https.onRequest((req, res) => {
+const express = require('express');
+const app = express();
+
+//exports.getPost = functions.https.onRequest((req, res) => {
+app.get('/posts',(req, res) => {
   admin
-    .firestore()
-    .collection("posts")
-    .get()
-    .then(data => {
-      let posts = [];
-      data.forEach(doc => {
-        posts.push(doc.data());
-        //console.log(doc.id, '=>', doc.data());
+  .firestore()
+  .collection("posts")
+  .orderBy('createdAt','desc')
+  .get()
+  .then(data => {
+    let posts = [];
+    data.forEach(doc => {
+      posts.push({
+        screamId: doc.id,
+        body: doc.data().body,
+        userHandle: doc.data().userHandle,
+        createdAt: doc.data().createdAt
       });
-      return res.json(posts);
-    })
-    .catch(err => {
-      console.log("Error getting documents", err);
+      //console.log(doc.id, '=>', doc.data());
     });
+    return res.json(posts);
+  })
+  .catch(err => {
+    console.log("Error getting documents", err);
+  });
 });
 
-exports.createPost = functions.https.onRequest((req, res) => {
-  if (req.method !== 'POST'){
-    return res.status(400).json({ error: 'Method not allowed'});
-  }
-
+app.post('/posts',(req, res) => {
   const newPost = {
     body: req.body.body,
     userHandle: req.body.userHandle,
-    createdAt: admin.firestore.Timestamp.fromDate(new Date())
+    createdAt: new Date().toISOString() //admin.firestore.Timestamp.fromDate(new Date())
   };
 
   admin
@@ -59,3 +62,6 @@ exports.createPost = functions.https.onRequest((req, res) => {
       console.error(err);
     });
 });
+
+// changes region to 'asia-east2' from us-central1 to deploy faster
+exports.api = functions.region('asia-east2').https.onRequest(app);
