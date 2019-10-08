@@ -73,6 +73,17 @@ app.post("/posts", (req, res) => {
     });
 });
 
+const isEmpty = string => {
+  if (string.trim() === "") return true;
+  else return false;
+};
+
+const isEmail = email => {
+  const emailRegEx = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (email.match(RegExp)) return true;
+  else return false;
+};
+
 //Signup route
 app.post("/signup", (req, res) => {
   const newUser = {
@@ -81,6 +92,21 @@ app.post("/signup", (req, res) => {
     confirmPassword: req.body.confirmPassword,
     handle: req.body.handle
   };
+
+  let errors = {};
+
+  if (isEmpty(newUser.email)) {
+    errors.email = "Must not be empty";
+  } else if (!isEmail(newUser.email)) {
+    errors.email = "Must be a valid email address";
+  }
+
+  if (isEmpty(newUser.password)) errors.password = "Must not be empty";
+  if (newUser.password !== newUser.confirmPassword)
+    errors.confirmPassword = "Passwords must match";
+  if (isEmpty(newUser.handle)) errors.handle = "Must not be empty";
+
+  if (Object.keys(errors).length > 0) return res.status(400).json(errors);
 
   // TODO: validate data
   let token, userId;
@@ -100,7 +126,7 @@ app.post("/signup", (req, res) => {
       return data.user.getIdToken();
     })
     .then(Idtoken => {
-      token=Idtoken;
+      token = Idtoken;
       const userCredentials = {
         handle: newUser.handle,
         email: newUser.email,
@@ -108,8 +134,8 @@ app.post("/signup", (req, res) => {
         userId
       };
       return db.doc(`/users/${newUser.handle}`).set(userCredentials);
-    })  
-    .then(()=>{  
+    })
+    .then(() => {
       return res.status(201).json({ token });
     })
     .catch(err => {
@@ -135,6 +161,38 @@ app.post("/signup", (req, res) => {
       return res.status(500).json({ error: err.code });
     });
   */
+});
+
+app.post("/login", (req, res) => {
+  const user = {
+    email: req.body.email,
+    password: req.body.password
+  };
+
+  let errors = {};
+
+  if (isEmpty(user.email)) errors.email = "Must not be empty";
+  if (isEmpty(user.password)) errors.password = "Must not be empty";
+
+  if (Object.keys(errors).length > 0) return res.status(400).json(errors);
+
+  firebase
+    .auth()
+    .signInWithEmailAndPassword(user.email, user.password)
+    .then(data => {
+      return data.user.getIdToken();
+    })
+    .then(token => {
+      return res.json({ token });
+    })
+    .catch(err => {
+      console.error(err);
+      if (err.code === "auth/wrong-password") {
+        return res
+          .status(400)
+          .json({ general: "Wrong credentials, please try again" });
+      } else return res.status(500).json({ error: err.code });
+    });
 });
 
 // changes region to 'asia-east2' from 'us-central1' to deploy faster
