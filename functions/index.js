@@ -10,16 +10,24 @@ const app = require("express")();
 
 const FBAuth = require("./util/FBAuth");
 const { getAllPosts, postOnePost } = require("./handlers/posts");
-const { signup, login, uploadImage } = require("./handlers/users");
+const {
+  signup,
+  login,
+  uploadImage,
+  addUserDetails,
+  getAuthenticatedUser
+} = require("./handlers/users");
 
 //post routes
 app.get("/posts", getAllPosts);
 app.post("/posts", FBAuth, postOnePost);
+app.post("/user/image", FBAuth, uploadImage);
+app.post("/user", FBAuth, addUserDetails);
+app.get("/user", FBAuth, getAuthenticatedUser);
 
 //user routes
 app.post("/signup", signup);
 app.post("/login", login);
-app.post("/user/image", FBAuth, uploadImage);
 
 // changes region to 'asia-east2' from 'us-central1' to deploy faster
 exports.api = functions.region("asia-east2").https.onRequest(app);
