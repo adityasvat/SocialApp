@@ -1,6 +1,6 @@
 //Authentication Middleware
 
-const { admin } = require("./admin");
+const { admin, db } = require("./admin");
 
 module.exports = (req, res, next) => {
   let idToken;
