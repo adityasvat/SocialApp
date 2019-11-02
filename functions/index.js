@@ -13,7 +13,10 @@ const {
   getAllPosts,
   postOnePost,
   getPost,
-  commentOnPost
+  commentOnPost,
+  likePost,
+  unlikePost,
+  deletePost
 } = require("./handlers/posts");
 const {
   signup,
@@ -27,10 +30,9 @@ const {
 app.get("/posts", getAllPosts);
 app.post("/posts", FBAuth, postOnePost);
 app.get("/posts/:postId", getPost); //: is a route parameter to access value without anyone logged in
-// TODO: delete post
-// TODO: like a post
-// TODO: unlike a post
-// TODO: comment on post
+app.delete('/posts/:postId', FBAuth, deletePost);
+app.get('/posts/:postId/like', FBAuth, likePost);
+app.get('/posts/:postId/unlike', FBAuth, unlikePost);
 app.post("/posts/:postId/comment", FBAuth, commentOnPost);
 
 //user routes

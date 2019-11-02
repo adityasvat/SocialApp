@@ -53,11 +53,28 @@
     "Gets particular post without login and show comments too"
 }
 
+/posts/postId DELETE
+
+{
+    "Deletes particular post with auth"
+}
+
 /posts/postId/comment AUTH
 
 {
     "body": "Great post! Will do (by Final 1)"
 }
 
+/posts/postId/like GET AUTH
+
+{
+    "likes post"
+}
+
+/posts/postId/unlike GET AUTH
+
+{
+    "unlikes post"
+}
 
 
