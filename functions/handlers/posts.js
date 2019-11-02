@@ -55,35 +55,35 @@ exports.getPost = (req, res) => {
   let postData = {};
   db.doc(`/posts/${req.params.postId}`)
     .get()
-    .then((doc) => {
+    .then(doc => {
       if (!doc.exists) {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: "Post not found" });
       }
       postData = doc.data();
       postData.postId = doc.id;
-      
+
       return db
-        .collection('comments')
-        .orderBy('createdAt', 'desc')
-        .where('postId', '==', req.params.postId)
+        .collection("comments")
+        .orderBy("createdAt", "desc")
+        .where("postId", "==", req.params.postId)
         .get();
     })
-    .then((data) => {
+    .then(data => {
       postData.comments = [];
-      data.forEach((doc) => {
+      data.forEach(doc => {
         postData.comments.push(doc.data());
       });
       return res.json(postData);
     })
-    .catch((err) => {
+    .catch(err => {
       console.error(err);
       res.status(500).json({ error: err.code });
     });
 };
 // Comment on a post
 exports.commentOnPost = (req, res) => {
-  if (req.body.body.trim() === '')
-    return res.status(400).json({ error: 'Must not be empty' });
+  if (req.body.body.trim() === "")
+    return res.status(400).json({ error: "Must not be empty" });
 
   const newComment = {
     body: req.body.body,
@@ -96,30 +96,30 @@ exports.commentOnPost = (req, res) => {
 
   db.doc(`/posts/${req.params.postId}`)
     .get()
-    .then((doc) => {
+    .then(doc => {
       if (!doc.exists) {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: "Post not found" });
       }
       return doc.ref.update({ commentCount: doc.data().commentCount + 1 });
     })
     .then(() => {
-      return db.collection('comments').add(newComment);
+      return db.collection("comments").add(newComment);
     })
     .then(() => {
       res.json(newComment);
     })
-    .catch((err) => {
+    .catch(err => {
       console.log(err);
-      res.status(500).json({ error: 'Something went wrong' });
+      res.status(500).json({ error: "Something went wrong" });
     });
 };
 
 // Like a post
 exports.likePost = (req, res) => {
   const likeDocument = db
-    .collection('likes')
-    .where('userHandle', '==', req.user.handle)
-    .where('postId', '==', req.params.postId)
+    .collection("likes")
+    .where("userHandle", "==", req.user.handle)
+    .where("postId", "==", req.params.postId)
     .limit(1);
 
   const postDocument = db.doc(`/posts/${req.params.postId}`);
@@ -128,19 +128,19 @@ exports.likePost = (req, res) => {
 
   postDocument
     .get()
-    .then((doc) => {
+    .then(doc => {
       if (doc.exists) {
         postData = doc.data();
         postData.postId = doc.id;
         return likeDocument.get();
       } else {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: "Post not found" });
       }
     })
-    .then((data) => {
+    .then(data => {
       if (data.empty) {
         return db
-          .collection('likes')
+          .collection("likes")
           .add({
             postId: req.params.postId,
             userHandle: req.user.handle
@@ -153,10 +153,10 @@ exports.likePost = (req, res) => {
             return res.json(postData);
           });
       } else {
-        return res.status(400).json({ error: 'Post already liked' });
+        return res.status(400).json({ error: "Post already liked" });
       }
     })
-    .catch((err) => {
+    .catch(err => {
       console.error(err);
       res.status(500).json({ error: err.code });
     });
@@ -164,9 +164,9 @@ exports.likePost = (req, res) => {
 
 exports.unlikePost = (req, res) => {
   const likeDocument = db
-    .collection('likes')
-    .where('userHandle', '==', req.user.handle)
-    .where('postId', '==', req.params.postId)
+    .collection("likes")
+    .where("userHandle", "==", req.user.handle)
+    .where("postId", "==", req.params.postId)
     .limit(1);
 
   const postDocument = db.doc(`/posts/${req.params.postId}`);
@@ -175,21 +175,21 @@ exports.unlikePost = (req, res) => {
 
   postDocument
     .get()
-    .then((doc) => {
+    .then(doc => {
       if (doc.exists) {
         postData = doc.data();
         postData.postId = doc.id;
         return likeDocument.get();
       } else {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: "Post not found" });
       }
     })
-    .then((data) => {
+    .then(data => {
       if (data.empty) {
-        return res.status(400).json({ error: 'Post not liked' });
+        return res.status(400).json({ error: "Post not liked" });
       } else {
         return db
-          .doc(`/likes/${data.docs[0].id}`)  // not dara.docs[0].data().id  id is stored in doc ref and not in data
+          .doc(`/likes/${data.docs[0].id}`) // not dara.docs[0].data().id  id is stored in doc ref and not in data
           .delete()
           .then(() => {
             postData.likeCount--;
@@ -200,7 +200,7 @@ exports.unlikePost = (req, res) => {
           });
       }
     })
-    .catch((err) => {
+    .catch(err => {
       console.error(err);
       res.status(500).json({ error: err.code });
     });
@@ -210,20 +210,20 @@ exports.deletePost = (req, res) => {
   const document = db.doc(`/posts/${req.params.postId}`);
   document
     .get()
-    .then((doc) => {
+    .then(doc => {
       if (!doc.exists) {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: "Post not found" });
       }
       if (doc.data().userHandle !== req.user.handle) {
-        return res.status(403).json({ error: 'Unauthorized' });
+        return res.status(403).json({ error: "Unauthorized" });
       } else {
         return document.delete();
       }
     })
     .then(() => {
-      res.json({ message: 'Post deleted successfully' });
+      res.json({ message: "Post deleted successfully" });
     })
-    .catch((err) => {
+    .catch(err => {
       console.error(err);
       return res.status(500).json({ error: err.code });
     });
