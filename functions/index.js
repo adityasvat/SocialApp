@@ -9,6 +9,11 @@ const functions = require("firebase-functions");
 const app = require("express")();
 const FBAuth = require("./util/FBAuth");
 
+//Last lines of code 
+//to get user details on build live-server
+const cors = require('cors');
+app.use(cors());
+
 const { db } = require("./util/admin");
 
 const {
